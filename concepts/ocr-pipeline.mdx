@@ -1,0 +1,100 @@
+---
+title: OCR pipeline
+description: How Trace OCR detects and recognizes text in documents
+---
+
+## Two-stage architecture
+
+Trace OCR uses a two-stage pipeline:
+
+1. **Detection** — a deep learning model scans the full image and outputs bounding boxes around text regions
+2. **Recognition** — each detected region is cropped and fed to a second model that reads the characters
+
+This separation allows you to swap detection and recognition models independently, optimizing for speed or accuracy depending on your use case.
+
+## Detection stage
+
+The detection model takes a full document image and produces a list of bounding boxes, each containing text. You can tune detection behavior with these parameters:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `detection_model` | `db_resnet50` | The detection architecture to use |
+| `assume_straight_pages` | `true` | Skip rotation handling for faster inference on upright documents |
+| `preserve_aspect_ratio` | `true` | Pad the image to preserve aspect ratio before detection |
+| `symmetric_padding` | `true` | Pad symmetrically instead of bottom-right only |
+| `binary_threshold` | `0.1` | Pixel-level threshold for the segmentation map |
+| `box_threshold` | `0.1` | Minimum confidence to keep a detected box |
+| `detection_batch_size` | `2` | Number of pages processed in parallel |
+
+Lower thresholds produce more boxes (higher recall, more noise). Higher thresholds produce fewer boxes (higher precision, may miss faint text).
+
+## Recognition stage
+
+Each detected text region is cropped and resized, then passed to the recognition model. The model outputs:
+
+- **value** — the recognized text string
+- **confidence** — a score from 0 to 1 indicating how certain the model is
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `recognition_model` | `crnn_vgg16_bn` | The recognition architecture to use |
+| `recognition_batch_size` | `128` | Number of crops processed in parallel |
+
+## Response hierarchy
+
+The full OCR endpoint (`/ocr`) returns a nested structure:
+
+```
+Document (array of files)
+└── OCROut (per file)
+    ├── name, orientation, language, dimensions
+    └── pages (array)
+        └── OCRPage
+            └── blocks (array)
+                └── OCRBlock
+                    ├── geometry, detection_score
+                    └── lines (array)
+                        └── OCRLine
+                            ├── geometry, detection_score
+                            └── words (array)
+                                └── OCRWord
+                                    ├── value
+                                    ├── geometry
+                                    ├── confidence
+                                    ├── detection_score
+                                    └── text_orientation
+```
+
+Words are grouped into lines, lines into blocks, and blocks into pages. This grouping is controlled by the `group_lines` (default `true`) and `group_blocks` (default `false`) parameters on the `/ocr` endpoint.
+
+## Geometry format
+
+All bounding boxes use **normalized coordinates** — floats between 0 and 1 relative to the page dimensions.
+
+For straight pages (`assume_straight_pages=true`), geometry is `[x_min, y_min, x_max, y_max]`:
+
+```json
+"geometry": [0.12, 0.05, 0.45, 0.10]
+```
+
+To convert to pixel coordinates, multiply by the page dimensions:
+
+```python
+x_min_px = geometry[0] * width
+y_min_px = geometry[1] * height
+x_max_px = geometry[2] * width
+y_max_px = geometry[3] * height
+```
+
+## Additional options
+
+The `/ocr` and `/kie` endpoints support extra parameters:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `detect_orientation` | `false` | Estimate the page rotation angle |
+| `detect_language` | `false` | Predict the page language |
+| `straighten_pages` | `false` | Auto-rotate pages before detection |
+| `disable_page_orientation` | `false` | Skip page orientation classification |
+| `disable_text_orientation` | `false` | Skip per-crop text orientation classification |
+| `paragraph_break` | `0.0035` | Vertical gap threshold for splitting blocks (OCR only) |

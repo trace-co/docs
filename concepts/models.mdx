@@ -1,0 +1,58 @@
+---
+title: Available models
+description: Detection and recognition architectures supported by Trace OCR
+---
+
+## Detection models
+
+Detection models localize text regions in the input image. Specify one via the `detection_model` query parameter.
+
+| Model | Architecture | Notes |
+|-------|-------------|-------|
+| `db_resnet50` | DBNet + ResNet-50 | **Default.** Good balance of speed and accuracy |
+| `db_resnet34` | DBNet + ResNet-34 | Lighter than ResNet-50, slightly faster |
+| `db_mobilenet_v3_large` | DBNet + MobileNetV3-Large | Mobile-optimized backbone, fastest DBNet variant |
+| `linknet_resnet18` | LinkNet + ResNet-18 | Lightweight encoder-decoder |
+| `linknet_resnet34` | LinkNet + ResNet-34 | Mid-range LinkNet |
+| `linknet_resnet50` | LinkNet + ResNet-50 | Heaviest LinkNet variant |
+| `fast_tiny` | FAST-Tiny | Fastest overall, lower accuracy |
+| `fast_small` | FAST-Small | Good speed/accuracy trade-off |
+| `fast_base` | FAST-Base | Best FAST accuracy |
+
+### Choosing a detection model
+
+- For **highest accuracy**: `db_resnet50` or `fast_base`
+- For **fastest inference**: `fast_tiny` or `db_mobilenet_v3_large`
+- For **balanced performance**: `fast_small` or `db_resnet34`
+
+## Recognition models
+
+Recognition models read text from cropped image regions. Specify one via the `recognition_model` query parameter.
+
+| Model | Architecture | Notes |
+|-------|-------------|-------|
+| `crnn_vgg16_bn` | CRNN + VGG-16-BN | **Default.** Proven CTC-based architecture |
+| `crnn_mobilenet_v3_small` | CRNN + MobileNetV3-Small | Fastest CRNN variant |
+| `crnn_mobilenet_v3_large` | CRNN + MobileNetV3-Large | Mobile-optimized, better than small |
+| `sar_resnet31` | SAR + ResNet-31 | Attention-based, handles curved text |
+| `master` | MASTER | Multi-aspect transformer for scene text |
+| `vitstr_small` | ViTSTR-Small | Vision transformer, small variant |
+| `vitstr_base` | ViTSTR-Base | Vision transformer, base variant |
+| `parseq` | PARSeq | State-of-the-art permutation-based |
+| `viptr_tiny` | ViPTR-Tiny | Vision-Perceiver transformer, compact |
+
+### Choosing a recognition model
+
+- For **highest accuracy**: `parseq` or `master`
+- For **fastest inference**: `crnn_mobilenet_v3_small`
+- For **balanced performance**: `crnn_vgg16_bn` (the default)
+- For **curved or rotated text**: `sar_resnet31`
+
+## Example: custom model combination
+
+```bash
+curl -X POST "http://localhost:8080/ocr/?detection_model=fast_base&recognition_model=parseq" \
+  -F "files=@document.jpg"
+```
+
+All models are downloaded from Hugging Face on first use and cached locally. The first request with a new model combination will be slower.

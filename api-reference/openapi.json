@@ -1,94 +1,71 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "Trace OCR API",
+    "description": "API for text detection and recognition powered by Trace OCR",
+    "version": "1.0.1a0"
   },
-  "servers": [
-    {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
   "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
+    "/recognition/": {
+      "post": {
+        "tags": [
+          "recognition"
+        ],
+        "summary": "Perform text recognition",
+        "description": "Reads text content from the input image using Trace OCR",
+        "operationId": "text_recognition_recognition__post",
         "parameters": [
           {
-            "name": "limit",
+            "name": "recognition_model",
             "in": "query",
-            "description": "The maximum number of results to return",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "crnn_vgg16_bn",
+              "title": "Recognition Model"
+            }
+          },
+          {
+            "name": "recognition_batch_size",
+            "in": "query",
+            "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "default": 128,
+              "title": "Recognition Batch Size"
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_text_recognition_recognition__post"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
+                    "$ref": "#/components/schemas/RecognitionOut"
+                  },
+                  "title": "Response Text Recognition Recognition  Post"
                 }
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -96,57 +73,523 @@
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+    "/detection/": {
+      "post": {
+        "tags": [
+          "detection"
+        ],
+        "summary": "Perform text detection",
+        "description": "Localizes text regions in the input image using Trace OCR",
+        "operationId": "text_detection_detection__post",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
+            "name": "detection_model",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "db_resnet50",
+              "title": "Detection Model"
+            }
+          },
+          {
+            "name": "assume_straight_pages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Assume Straight Pages"
+            }
+          },
+          {
+            "name": "preserve_aspect_ratio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Preserve Aspect Ratio"
+            }
+          },
+          {
+            "name": "symmetric_padding",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Symmetric Padding"
+            }
+          },
+          {
+            "name": "detection_batch_size",
+            "in": "query",
+            "required": false,
             "schema": {
               "type": "integer",
-              "format": "int64"
+              "default": 2,
+              "title": "Detection Batch Size"
+            }
+          },
+          {
+            "name": "binary_threshold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.1,
+              "title": "Binary Threshold"
+            }
+          },
+          {
+            "name": "box_threshold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.1,
+              "title": "Box Threshold"
             }
           }
         ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
         "requestBody": {
-          "description": "Plant added to the store",
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/Body_text_detection_detection__post"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DetectionOut"
+                  },
+                  "title": "Response Text Detection Detection  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ocr/": {
+      "post": {
+        "tags": [
+          "ocr"
+        ],
+        "summary": "Perform OCR",
+        "description": "Analyzes the input image using Trace OCR text detection and recognition",
+        "operationId": "perform_ocr_ocr__post",
+        "parameters": [
+          {
+            "name": "detection_model",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "db_resnet50",
+              "title": "Detection Model"
+            }
+          },
+          {
+            "name": "recognition_model",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "crnn_vgg16_bn",
+              "title": "Recognition Model"
+            }
+          },
+          {
+            "name": "assume_straight_pages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Assume Straight Pages"
+            }
+          },
+          {
+            "name": "preserve_aspect_ratio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Preserve Aspect Ratio"
+            }
+          },
+          {
+            "name": "detect_orientation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Detect Orientation"
+            }
+          },
+          {
+            "name": "detect_language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Detect Language"
+            }
+          },
+          {
+            "name": "symmetric_padding",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Symmetric Padding"
+            }
+          },
+          {
+            "name": "straighten_pages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Straighten Pages"
+            }
+          },
+          {
+            "name": "detection_batch_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 2,
+              "title": "Detection Batch Size"
+            }
+          },
+          {
+            "name": "recognition_batch_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 128,
+              "title": "Recognition Batch Size"
+            }
+          },
+          {
+            "name": "disable_page_orientation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Disable Page Orientation"
+            }
+          },
+          {
+            "name": "disable_text_orientation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Disable Text Orientation"
+            }
+          },
+          {
+            "name": "binary_threshold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.1,
+              "title": "Binary Threshold"
+            }
+          },
+          {
+            "name": "box_threshold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.1,
+              "title": "Box Threshold"
+            }
+          },
+          {
+            "name": "group_lines",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Group Lines"
+            }
+          },
+          {
+            "name": "group_blocks",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Group Blocks"
+            }
+          },
+          {
+            "name": "paragraph_break",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.0035,
+              "title": "Paragraph Break"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_perform_ocr_ocr__post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OCROut"
+                  },
+                  "title": "Response Perform Ocr Ocr  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/kie/": {
+      "post": {
+        "tags": [
+          "kie"
+        ],
+        "summary": "Perform KIE",
+        "description": "Extracts structured key-value information from the input image using Trace OCR",
+        "operationId": "perform_kie_kie__post",
+        "parameters": [
+          {
+            "name": "detection_model",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "db_resnet50",
+              "title": "Detection Model"
+            }
+          },
+          {
+            "name": "recognition_model",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "crnn_vgg16_bn",
+              "title": "Recognition Model"
+            }
+          },
+          {
+            "name": "assume_straight_pages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Assume Straight Pages"
+            }
+          },
+          {
+            "name": "preserve_aspect_ratio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Preserve Aspect Ratio"
+            }
+          },
+          {
+            "name": "detect_orientation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Detect Orientation"
+            }
+          },
+          {
+            "name": "detect_language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Detect Language"
+            }
+          },
+          {
+            "name": "symmetric_padding",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Symmetric Padding"
+            }
+          },
+          {
+            "name": "straighten_pages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Straighten Pages"
+            }
+          },
+          {
+            "name": "detection_batch_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 2,
+              "title": "Detection Batch Size"
+            }
+          },
+          {
+            "name": "recognition_batch_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 128,
+              "title": "Recognition Batch Size"
+            }
+          },
+          {
+            "name": "disable_page_orientation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Disable Page Orientation"
+            }
+          },
+          {
+            "name": "disable_text_orientation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Disable Text Orientation"
+            }
+          },
+          {
+            "name": "binary_threshold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.1,
+              "title": "Binary Threshold"
+            }
+          },
+          {
+            "name": "box_threshold",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.1,
+              "title": "Box Threshold"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_perform_kie_kie__post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KIEOut"
+                  },
+                  "title": "Response Perform Kie Kie  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
         }
       }
@@ -154,64 +597,701 @@
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "Body_perform_kie_kie__post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
         "type": "object",
+        "title": "Body_perform_kie_kie__post"
+      },
+      "Body_perform_ocr_ocr__post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "title": "Body_perform_ocr_ocr__post"
+      },
+      "Body_text_detection_detection__post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "title": "Body_text_detection_detection__post"
+      },
+      "Body_text_recognition_recognition__post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "title": "Body_text_recognition_recognition__post"
+      },
+      "DetectionOut": {
         "properties": {
           "name": {
-            "description": "The name of the plant",
-            "type": "string"
+            "type": "string",
+            "title": "Name",
+            "examples": [
+              "example.jpg"
+            ]
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
+          "bounding_boxes": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Bounding Boxes",
+            "examples": [
+              [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ]
           }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
+        },
         "type": "object",
+        "required": [
+          "name",
+          "bounding_boxes"
+        ],
+        "title": "DetectionOut"
+      },
+      "HTTPValidationError": {
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
           }
-        }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "KIEElement": {
+        "properties": {
+          "field_type": {
+            "type": "string",
+            "title": "Field Type",
+            "examples": [
+              "example"
+            ]
+          },
+          "values": {
+            "items": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "items": {
+                      "type": "number"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Values",
+            "examples": [
+              {
+                "confidence": 0.99,
+                "detection_score": 0.99,
+                "geometry": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "text_orientation": {
+                  "value": 0
+                },
+                "value": "example"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "field_type",
+          "values"
+        ],
+        "title": "KIEElement"
+      },
+      "KIEOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "examples": [
+              "example.jpg"
+            ]
+          },
+          "orientation": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Orientation",
+            "examples": [
+              {
+                "confidence": 0.99,
+                "value": 0.0
+              }
+            ]
+          },
+          "language": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Language",
+            "examples": [
+              {
+                "confidence": 0.99,
+                "value": "en"
+              }
+            ]
+          },
+          "dimensions": {
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Dimensions",
+            "examples": [
+              [
+                100,
+                100
+              ]
+            ]
+          },
+          "extracted_fields": {
+            "items": {
+              "$ref": "#/components/schemas/KIEElement"
+            },
+            "type": "array",
+            "title": "Extracted Fields"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "orientation",
+          "language",
+          "dimensions",
+          "extracted_fields"
+        ],
+        "title": "KIEOut"
+      },
+      "OCRBlock": {
+        "properties": {
+          "geometry": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Geometry",
+            "examples": [
+              [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ]
+          },
+          "detection_score": {
+            "type": "number",
+            "title": "Detection Score",
+            "examples": [
+              0.99
+            ]
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/OCRLine"
+            },
+            "type": "array",
+            "title": "Lines",
+            "examples": [
+              {
+                "detection_score": 0.99,
+                "geometry": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "words": [
+                  {
+                    "confidence": 0.99,
+                    "geometry": [
+                      0.0,
+                      0.0,
+                      0.0,
+                      0.0
+                    ],
+                    "text_orientation": {
+                      "value": 0
+                    },
+                    "value": "example"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "geometry",
+          "detection_score",
+          "lines"
+        ],
+        "title": "OCRBlock"
+      },
+      "OCRLine": {
+        "properties": {
+          "geometry": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Geometry",
+            "examples": [
+              [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ]
+          },
+          "detection_score": {
+            "type": "number",
+            "title": "Detection Score",
+            "examples": [
+              0.99
+            ]
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/OCRWord"
+            },
+            "type": "array",
+            "title": "Words",
+            "examples": [
+              {
+                "confidence": 0.99,
+                "detection_score": 0.99,
+                "geometry": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "text_orientation": {
+                  "value": 0
+                },
+                "value": "example"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "geometry",
+          "detection_score",
+          "words"
+        ],
+        "title": "OCRLine"
+      },
+      "OCROut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "examples": [
+              "example.jpg"
+            ]
+          },
+          "orientation": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Orientation",
+            "examples": [
+              {
+                "confidence": 0.99,
+                "value": 0.0
+              }
+            ]
+          },
+          "language": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Language",
+            "examples": [
+              {
+                "confidence": 0.99,
+                "value": "en"
+              }
+            ]
+          },
+          "dimensions": {
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Dimensions",
+            "examples": [
+              [
+                100,
+                100
+              ]
+            ]
+          },
+          "pages": {
+            "items": {
+              "$ref": "#/components/schemas/OCRPage"
+            },
+            "type": "array",
+            "title": "Pages",
+            "examples": [
+              {
+                "detection_score": 0.99,
+                "geometry": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "lines": [
+                  {
+                    "detection_score": 0.99,
+                    "geometry": [
+                      0.0,
+                      0.0,
+                      0.0,
+                      0.0
+                    ],
+                    "words": [
+                      {
+                        "confidence": 0.99,
+                        "detection_score": 0.99,
+                        "geometry": [
+                          0.0,
+                          0.0,
+                          0.0,
+                          0.0
+                        ],
+                        "text_orientation": {
+                          "value": 0
+                        },
+                        "value": "example"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "orientation",
+          "language",
+          "dimensions",
+          "pages"
+        ],
+        "title": "OCROut"
+      },
+      "OCRPage": {
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/OCRBlock"
+            },
+            "type": "array",
+            "title": "Blocks",
+            "examples": [
+              {
+                "detection_score": 0.99,
+                "geometry": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "lines": [
+                  {
+                    "detection_score": 0.99,
+                    "geometry": [
+                      0.0,
+                      0.0,
+                      0.0,
+                      0.0
+                    ],
+                    "words": [
+                      {
+                        "confidence": 0.99,
+                        "detection_score": 0.99,
+                        "geometry": [
+                          0.0,
+                          0.0,
+                          0.0,
+                          0.0
+                        ],
+                        "text_orientation": {
+                          "value": 0
+                        },
+                        "value": "example"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "blocks"
+        ],
+        "title": "OCRPage"
+      },
+      "OCRWord": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "title": "Value",
+            "examples": [
+              "example"
+            ]
+          },
+          "geometry": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Geometry",
+            "examples": [
+              [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ]
+          },
+          "detection_score": {
+            "type": "number",
+            "title": "Detection Score",
+            "examples": [
+              0.99
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "examples": [
+              0.99
+            ]
+          },
+          "text_orientation": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Text Orientation",
+            "examples": [
+              {
+                "value": 0
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "geometry",
+          "detection_score",
+          "confidence",
+          "text_orientation"
+        ],
+        "title": "OCRWord"
+      },
+      "RecognitionOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "examples": [
+              "example.jpg"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "title": "Value",
+            "examples": [
+              "Hello"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "examples": [
+              0.99
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "value",
+          "confidence"
+        ],
+        "title": "RecognitionOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
       }
     }
-  }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local development"
+    }
+  ]
 }
