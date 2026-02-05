@@ -23,7 +23,8 @@
               "type": "string",
               "default": "crnn_vgg16_bn",
               "title": "Recognition Model"
-            }
+            },
+            "description": "Recognition architecture to use. See the models page for available options."
           },
           {
             "name": "recognition_batch_size",
@@ -33,7 +34,8 @@
               "type": "integer",
               "default": 128,
               "title": "Recognition Batch Size"
-            }
+            },
+            "description": "Number of text crops processed in parallel during recognition. Decrease if you run into memory issues on large batches."
           }
         ],
         "requestBody": {
@@ -90,7 +92,8 @@
               "type": "string",
               "default": "db_resnet50",
               "title": "Detection Model"
-            }
+            },
+            "description": "Detection architecture to use. See the models page for available options."
           },
           {
             "name": "assume_straight_pages",
@@ -100,7 +103,8 @@
               "type": "boolean",
               "default": true,
               "title": "Assume Straight Pages"
-            }
+            },
+            "description": "Return axis-aligned bounding boxes. Set to false for rotated documents to get 4-point polygons instead."
           },
           {
             "name": "preserve_aspect_ratio",
@@ -110,7 +114,8 @@
               "type": "boolean",
               "default": true,
               "title": "Preserve Aspect Ratio"
-            }
+            },
+            "description": "Pad the image to preserve its aspect ratio before feeding it to the model."
           },
           {
             "name": "symmetric_padding",
@@ -120,7 +125,8 @@
               "type": "boolean",
               "default": true,
               "title": "Symmetric Padding"
-            }
+            },
+            "description": "Pad symmetrically (centered) rather than bottom-right only."
           },
           {
             "name": "detection_batch_size",
@@ -130,7 +136,8 @@
               "type": "integer",
               "default": 2,
               "title": "Detection Batch Size"
-            }
+            },
+            "description": "Number of pages processed in parallel during detection. Increase for multi-page PDFs if you have enough memory."
           },
           {
             "name": "binary_threshold",
@@ -140,7 +147,8 @@
               "type": "number",
               "default": 0.1,
               "title": "Binary Threshold"
-            }
+            },
+            "description": "Pixel-level threshold for the detection segmentation heatmap. Lower values detect more text but may introduce false positives."
           },
           {
             "name": "box_threshold",
@@ -150,7 +158,8 @@
               "type": "number",
               "default": 0.1,
               "title": "Box Threshold"
-            }
+            },
+            "description": "Minimum confidence score to keep a detected bounding box. Lower values return more boxes but may include noise."
           }
         ],
         "requestBody": {
@@ -207,7 +216,8 @@
               "type": "string",
               "default": "db_resnet50",
               "title": "Detection Model"
-            }
+            },
+            "description": "Detection architecture to use. See the models page for available options."
           },
           {
             "name": "recognition_model",
@@ -217,7 +227,8 @@
               "type": "string",
               "default": "crnn_vgg16_bn",
               "title": "Recognition Model"
-            }
+            },
+            "description": "Recognition architecture to use. See the models page for available options."
           },
           {
             "name": "assume_straight_pages",
@@ -227,7 +238,8 @@
               "type": "boolean",
               "default": true,
               "title": "Assume Straight Pages"
-            }
+            },
+            "description": "Return axis-aligned bounding boxes. Set to false for rotated documents to get 4-point polygons instead."
           },
           {
             "name": "preserve_aspect_ratio",
@@ -237,7 +249,8 @@
               "type": "boolean",
               "default": true,
               "title": "Preserve Aspect Ratio"
-            }
+            },
+            "description": "Pad the image to preserve its aspect ratio before feeding it to the model."
           },
           {
             "name": "detect_orientation",
@@ -247,7 +260,8 @@
               "type": "boolean",
               "default": false,
               "title": "Detect Orientation"
-            }
+            },
+            "description": "Detect and report the page orientation angle in the response."
           },
           {
             "name": "detect_language",
@@ -257,7 +271,8 @@
               "type": "boolean",
               "default": false,
               "title": "Detect Language"
-            }
+            },
+            "description": "Detect and report the page language in the response."
           },
           {
             "name": "symmetric_padding",
@@ -267,7 +282,8 @@
               "type": "boolean",
               "default": true,
               "title": "Symmetric Padding"
-            }
+            },
+            "description": "Pad symmetrically (centered) rather than bottom-right only."
           },
           {
             "name": "straighten_pages",
@@ -277,7 +293,8 @@
               "type": "boolean",
               "default": false,
               "title": "Straighten Pages"
-            }
+            },
+            "description": "Automatically rotate pages to correct detected skew before recognition."
           },
           {
             "name": "detection_batch_size",
@@ -287,7 +304,8 @@
               "type": "integer",
               "default": 2,
               "title": "Detection Batch Size"
-            }
+            },
+            "description": "Number of pages processed in parallel during detection. Increase for multi-page PDFs if you have enough memory."
           },
           {
             "name": "recognition_batch_size",
@@ -297,7 +315,8 @@
               "type": "integer",
               "default": 128,
               "title": "Recognition Batch Size"
-            }
+            },
+            "description": "Number of text crops processed in parallel during recognition. Decrease if you run into memory issues on large batches."
           },
           {
             "name": "disable_page_orientation",
@@ -307,7 +326,8 @@
               "type": "boolean",
               "default": false,
               "title": "Disable Page Orientation"
-            }
+            },
+            "description": "Skip page orientation classification entirely."
           },
           {
             "name": "disable_text_orientation",
@@ -317,7 +337,8 @@
               "type": "boolean",
               "default": false,
               "title": "Disable Text Orientation"
-            }
+            },
+            "description": "Skip text crop orientation classification."
           },
           {
             "name": "binary_threshold",
@@ -327,7 +348,8 @@
               "type": "number",
               "default": 0.1,
               "title": "Binary Threshold"
-            }
+            },
+            "description": "Pixel-level threshold for the detection segmentation heatmap. Lower values detect more text but may introduce false positives."
           },
           {
             "name": "box_threshold",
@@ -337,7 +359,8 @@
               "type": "number",
               "default": 0.1,
               "title": "Box Threshold"
-            }
+            },
+            "description": "Minimum confidence score to keep a detected bounding box. Lower values return more boxes but may include noise."
           },
           {
             "name": "group_lines",
@@ -347,7 +370,8 @@
               "type": "boolean",
               "default": true,
               "title": "Group Lines"
-            }
+            },
+            "description": "Group detected words into lines based on spatial proximity."
           },
           {
             "name": "group_blocks",
@@ -357,7 +381,8 @@
               "type": "boolean",
               "default": false,
               "title": "Group Blocks"
-            }
+            },
+            "description": "Group detected lines into blocks based on spatial proximity."
           },
           {
             "name": "paragraph_break",
@@ -367,7 +392,8 @@
               "type": "number",
               "default": 0.0035,
               "title": "Paragraph Break"
-            }
+            },
+            "description": "Normalized vertical distance threshold for splitting text into separate blocks. Only used when group_blocks is enabled."
           }
         ],
         "requestBody": {
@@ -424,7 +450,8 @@
               "type": "string",
               "default": "db_resnet50",
               "title": "Detection Model"
-            }
+            },
+            "description": "Detection architecture to use. See the models page for available options."
           },
           {
             "name": "recognition_model",
@@ -434,7 +461,8 @@
               "type": "string",
               "default": "crnn_vgg16_bn",
               "title": "Recognition Model"
-            }
+            },
+            "description": "Recognition architecture to use. See the models page for available options."
           },
           {
             "name": "assume_straight_pages",
@@ -444,7 +472,8 @@
               "type": "boolean",
               "default": true,
               "title": "Assume Straight Pages"
-            }
+            },
+            "description": "Return axis-aligned bounding boxes. Set to false for rotated documents to get 4-point polygons instead."
           },
           {
             "name": "preserve_aspect_ratio",
@@ -454,7 +483,8 @@
               "type": "boolean",
               "default": true,
               "title": "Preserve Aspect Ratio"
-            }
+            },
+            "description": "Pad the image to preserve its aspect ratio before feeding it to the model."
           },
           {
             "name": "detect_orientation",
@@ -464,7 +494,8 @@
               "type": "boolean",
               "default": false,
               "title": "Detect Orientation"
-            }
+            },
+            "description": "Detect and report the page orientation angle in the response."
           },
           {
             "name": "detect_language",
@@ -474,7 +505,8 @@
               "type": "boolean",
               "default": false,
               "title": "Detect Language"
-            }
+            },
+            "description": "Detect and report the page language in the response."
           },
           {
             "name": "symmetric_padding",
@@ -484,7 +516,8 @@
               "type": "boolean",
               "default": true,
               "title": "Symmetric Padding"
-            }
+            },
+            "description": "Pad symmetrically (centered) rather than bottom-right only."
           },
           {
             "name": "straighten_pages",
@@ -494,7 +527,8 @@
               "type": "boolean",
               "default": false,
               "title": "Straighten Pages"
-            }
+            },
+            "description": "Automatically rotate pages to correct detected skew before recognition."
           },
           {
             "name": "detection_batch_size",
@@ -504,7 +538,8 @@
               "type": "integer",
               "default": 2,
               "title": "Detection Batch Size"
-            }
+            },
+            "description": "Number of pages processed in parallel during detection. Increase for multi-page PDFs if you have enough memory."
           },
           {
             "name": "recognition_batch_size",
@@ -514,7 +549,8 @@
               "type": "integer",
               "default": 128,
               "title": "Recognition Batch Size"
-            }
+            },
+            "description": "Number of text crops processed in parallel during recognition. Decrease if you run into memory issues on large batches."
           },
           {
             "name": "disable_page_orientation",
@@ -524,7 +560,8 @@
               "type": "boolean",
               "default": false,
               "title": "Disable Page Orientation"
-            }
+            },
+            "description": "Skip page orientation classification entirely."
           },
           {
             "name": "disable_text_orientation",
@@ -534,7 +571,8 @@
               "type": "boolean",
               "default": false,
               "title": "Disable Text Orientation"
-            }
+            },
+            "description": "Skip text crop orientation classification."
           },
           {
             "name": "binary_threshold",
@@ -544,7 +582,8 @@
               "type": "number",
               "default": 0.1,
               "title": "Binary Threshold"
-            }
+            },
+            "description": "Pixel-level threshold for the detection segmentation heatmap. Lower values detect more text but may introduce false positives."
           },
           {
             "name": "box_threshold",
@@ -554,7 +593,8 @@
               "type": "number",
               "default": 0.1,
               "title": "Box Threshold"
-            }
+            },
+            "description": "Minimum confidence score to keep a detected bounding box. Lower values return more boxes but may include noise."
           }
         ],
         "requestBody": {
@@ -605,7 +645,8 @@
               "format": "binary"
             },
             "type": "array",
-            "title": "Files"
+            "title": "Files",
+            "description": "One or more files to process. Accepts JPEG, PNG, and PDF formats."
           }
         },
         "type": "object",
@@ -619,7 +660,8 @@
               "format": "binary"
             },
             "type": "array",
-            "title": "Files"
+            "title": "Files",
+            "description": "One or more files to process. Accepts JPEG, PNG, and PDF formats."
           }
         },
         "type": "object",
@@ -633,7 +675,8 @@
               "format": "binary"
             },
             "type": "array",
-            "title": "Files"
+            "title": "Files",
+            "description": "One or more files to process. Accepts JPEG, PNG, and PDF formats."
           }
         },
         "type": "object",
@@ -647,7 +690,8 @@
               "format": "binary"
             },
             "type": "array",
-            "title": "Files"
+            "title": "Files",
+            "description": "One or more files to process. Accepts JPEG, PNG, and PDF formats."
           }
         },
         "type": "object",
