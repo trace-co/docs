@@ -1290,8 +1290,8 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080",
-      "description": "Local development"
+      "url": "https://api.trace.so",
+      "description": "Production"
     }
   ]
 }

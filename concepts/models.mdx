@@ -51,8 +51,6 @@ Recognition models read text from cropped image regions. Specify one via the `re
 ## Example: custom model combination
 
 ```bash
-curl -X POST "http://localhost:8080/ocr/?detection_model=fast_base&recognition_model=parseq" \
+curl -X POST "https://api.trace.so/ocr/?detection_model=fast_base&recognition_model=parseq" \
   -F "files=@document.jpg"
 ```
-
-All models are downloaded from Hugging Face on first use and cached locally. The first request with a new model combination will be slower.

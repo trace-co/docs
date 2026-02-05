@@ -1,11 +1,11 @@
 ---
 title: Trace OCR
-description: Self-hosted OCR API for text detection and recognition
+description: OCR API for text detection and recognition
 ---
 
 ## What is Trace OCR?
 
-Trace OCR is a self-hosted REST API for extracting text from images and PDFs. It combines deep learning-based text detection with text recognition to deliver structured OCR results with confidence scores and bounding box geometry.
+Trace OCR is a REST API for extracting text from images and PDFs. It combines deep learning-based text detection with text recognition to deliver structured OCR results with confidence scores and bounding box geometry.
 
 Upload a document and get back every word, its location, and how confident the model is — all in a single API call.
 
@@ -27,10 +27,10 @@ Upload a document and get back every word, its location, and how confident the m
 ## Quick example
 
 ```bash
-curl -X POST http://localhost:8080/ocr/ \
+curl -X POST https://api.trace.so/ocr/ \
   -F "files=@document.jpg"
 ```
 
 <Card title="Get started" icon="rocket" href="/quickstart">
-  Set up Trace OCR locally in under 5 minutes.
+  Make your first OCR request in minutes.
 </Card>
