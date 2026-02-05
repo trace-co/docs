@@ -1,0 +1,138 @@
+---
+title: What is OCR?
+description: Understanding optical character recognition and what Trace OCR can do
+---
+
+## What is OCR?
+
+OCR (Optical Character Recognition) converts images of text into machine-readable data. Instead of manually typing out what's in a photo of a document, OCR does it automatically.
+
+Trace OCR is a REST API that does this for you. Upload an image or PDF, and get back structured text with positions and confidence scores — all in a single API call.
+
+## Use cases
+
+Here are some concrete examples of what you can build with Trace OCR:
+
+- **Receipt and invoice processing** — extract line items, totals, dates, and vendor information from photos of receipts or scanned invoices
+- **Document digitization** — convert scanned papers, contracts, and reports into searchable, editable text
+- **Form data extraction** — pull field values from filled-in forms, applications, and questionnaires
+- **ID and card reading** — read information from ID cards, business cards, or membership cards
+- **Compliance and archival** — index large document archives so they become searchable and auditable
+
+## How it works
+
+Trace OCR processes documents in three steps:
+
+1. **Upload** — you send an image or PDF to the API
+2. **Detect** — a deep learning model scans the image and finds all text regions
+3. **Recognize** — a second model reads each detected region and outputs the text
+
+The result is a structured hierarchy: **pages > blocks > lines > words**. Each word comes with its bounding box coordinates and a confidence score telling you how certain the model is about the reading.
+
+For a deeper dive into the two-stage architecture, see [OCR pipeline](/concepts/ocr-pipeline).
+
+## Example: processing a receipt
+
+Let's walk through a real example. Here's a photo of a crumpled Apple Store receipt:
+
+<Frame caption="A photo of an Apple Store receipt">
+  <img src="/images/receipt-example.png" alt="Photo of an Apple Store receipt" />
+</Frame>
+
+Send it to the API:
+
+```bash
+curl -X POST https://ocr-api.trace.so/ocr/ \
+  -F "files=@receipt.png"
+```
+
+Trace OCR detects every text region in the image and draws bounding boxes around them:
+
+<Frame caption="OCR detection results — bounding boxes around every detected text region">
+  <img src="/images/receipt-ocr-result.png" alt="Receipt with OCR bounding boxes overlaid" />
+</Frame>
+
+The API returns structured JSON with every word, its position, and confidence:
+
+```json
+[
+  {
+    "name": "receipt.png",
+    "orientation": { "value": 0, "confidence": null },
+    "language": { "value": null, "confidence": null },
+    "dimensions": [1536, 1024],
+    "pages": [
+      {
+        "blocks": [
+          {
+            "geometry": [0.214, 0.149, 0.777, 0.783],
+            "detection_score": 0.55,
+            "lines": [
+              {
+                "geometry": [0.386, 0.149, 0.641, 0.181],
+                "words": [
+                  {
+                    "value": "RECEIPT",
+                    "confidence": 0.99,
+                    "geometry": [0.386, 0.149, 0.641, 0.181],
+                    "detection_score": 0.57
+                  }
+                ]
+              },
+              {
+                "geometry": [0.254, 0.208, 0.768, 0.230],
+                "words": [
+                  { "value": "APPLE", "confidence": 0.99, "geometry": [0.254, 0.208, 0.356, 0.227] },
+                  { "value": "STORE,", "confidence": 0.99, "geometry": [0.365, 0.209, 0.478, 0.230] },
+                  { "value": "GRAFTON", "confidence": 0.99, "geometry": [0.488, 0.211, 0.639, 0.229] },
+                  { "value": "STREET", "confidence": 0.99, "geometry": [0.649, 0.212, 0.768, 0.229] }
+                ]
+              },
+              {
+                "geometry": [0.222, 0.485, 0.471, 0.502],
+                "words": [
+                  { "value": "MacBook", "confidence": 0.99, "geometry": [0.222, 0.485, 0.332, 0.500] },
+                  { "value": "Pro", "confidence": 0.99, "geometry": [0.336, 0.485, 0.378, 0.501] },
+                  { "value": "14-inch", "confidence": 0.99, "geometry": [0.383, 0.484, 0.471, 0.502] }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+<Note>
+  The response above is abbreviated. The full response includes every word on the receipt — addresses, dates, prices, line items, and totals — all with bounding boxes and confidence scores.
+</Note>
+
+Here's what each field means:
+
+| Field | Description |
+|-------|-------------|
+| **value** | The recognized text for this word |
+| **geometry** | Normalized bounding box `[x_min, y_min, x_max, y_max]` where values range from 0 to 1 relative to page dimensions |
+| **confidence** | How certain the recognition model is about the text (0 to 1) |
+| **detection_score** | How certain the detection model is that this region contains text (0 to 1) |
+
+In this example, the model correctly read "RECEIPT", "APPLE STORE, GRAFTON STREET", "MacBook Pro 14-inch", the subtotal "€2,799.00", and the total "€3,442.77" — all with confidence scores above 0.99.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Make your first OCR request in minutes.
+  </Card>
+  <Card title="OCR pipeline" icon="diagram-project" href="/concepts/ocr-pipeline">
+    Understand the two-stage detection + recognition architecture.
+  </Card>
+  <Card title="Available models" icon="microchip" href="/concepts/models">
+    Choose the right detection and recognition models for your use case.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/endpoint/ocr/perform-ocr">
+    Full endpoint documentation with parameters and response schemas.
+  </Card>
+</CardGroup>
