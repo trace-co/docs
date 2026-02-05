@@ -5,29 +5,22 @@ description: Get Trace OCR running locally and make your first request
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
+- [Docker](https://docs.docker.com/get-docker/)
 - An HTTP client (`curl`, Python `requests`, or similar)
 
 ## Start the server
 
 <Steps>
-  <Step title="Clone the repository">
+  <Step title="Pull the Docker image">
     ```bash
-    git clone https://github.com/trace-co/trace-doctr.git
-    cd trace-doctr/api
+    docker pull ghcr.io/trace-co/trace-doctr:latest
     ```
-  </Step>
-  <Step title="Generate the lock file">
-    ```bash
-    make lock
-    ```
-    This requires [Poetry](https://python-poetry.org/) to be installed.
   </Step>
   <Step title="Start the API">
     ```bash
-    make run
+    docker run -p 8080:8080 ghcr.io/trace-co/trace-doctr:latest
     ```
-    The API starts at `http://localhost:8080`. The first startup takes a few minutes as Docker builds the image and downloads model weights from Hugging Face.
+    The API starts at `http://localhost:8080`. The first startup may take a minute as model weights are downloaded from Hugging Face.
   </Step>
 </Steps>
 
@@ -131,6 +124,5 @@ See [Available models](/concepts/models) for the full list of architectures.
 ## Stop the server
 
 ```bash
-cd trace-doctr/api
-make stop
+docker stop $(docker ps -q --filter ancestor=ghcr.io/trace-co/trace-doctr:latest)
 ```

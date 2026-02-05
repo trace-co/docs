@@ -4,7 +4,7 @@
 
 This is the documentation site for **Trace OCR**, a self-hosted REST API for text detection and recognition. The docs are built with [Mintlify](https://mintlify.com/) and hosted from the `trace-co/docs` repository.
 
-The API lives in a separate repository: [trace-co/trace-doctr](https://github.com/trace-co/trace-doctr).
+The API source code lives in a separate repository (`trace-co/trace-doctr`).
 
 ## Mintlify basics
 

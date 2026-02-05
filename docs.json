@@ -39,31 +39,9 @@
         ]
       }
     ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/trace-co/trace-doctr",
-          "icon": "github"
-        }
-      ]
-    }
   },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "GitHub",
-        "href": "https://github.com/trace-co/trace-doctr"
-      }
-    ]
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/trace-co"
-    }
   }
 }
