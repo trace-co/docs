@@ -14,7 +14,7 @@ Upload an image or PDF and get back structured text with bounding boxes and conf
 
 <CodeGroup>
 ```bash curl
-curl -X POST https://api.trace.so/ocr/ \
+curl -X POST https://ocr-api.trace.so/ocr/ \
   -F "files=@document.jpg"
 ```
 
@@ -23,7 +23,7 @@ import requests
 
 with open("document.jpg", "rb") as f:
     response = requests.post(
-        "https://api.trace.so/ocr/",
+        "https://ocr-api.trace.so/ocr/",
         files={"files": ("document.jpg", f, "image/jpeg")},
     )
 
@@ -34,7 +34,7 @@ print(response.json())
 const form = new FormData();
 form.append("files", new Blob([fileBuffer]), "document.jpg");
 
-const response = await fetch("https://api.trace.so/ocr/", {
+const response = await fetch("https://ocr-api.trace.so/ocr/", {
   method: "POST",
   body: form,
 });
@@ -95,7 +95,7 @@ Each word includes:
 Pass query parameters to change models or tune thresholds:
 
 ```bash
-curl -X POST "https://api.trace.so/ocr/?detection_model=fast_base&recognition_model=parseq&binary_threshold=0.3" \
+curl -X POST "https://ocr-api.trace.so/ocr/?detection_model=fast_base&recognition_model=parseq&binary_threshold=0.3" \
   -F "files=@document.jpg"
 ```
 

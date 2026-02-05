@@ -1290,7 +1290,7 @@
   },
   "servers": [
     {
-      "url": "https://api.trace.so",
+      "url": "https://ocr-api.trace.so",
       "description": "Production"
     }
   ]

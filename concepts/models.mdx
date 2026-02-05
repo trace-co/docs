@@ -51,6 +51,6 @@ Recognition models read text from cropped image regions. Specify one via the `re
 ## Example: custom model combination
 
 ```bash
-curl -X POST "https://api.trace.so/ocr/?detection_model=fast_base&recognition_model=parseq" \
+curl -X POST "https://ocr-api.trace.so/ocr/?detection_model=fast_base&recognition_model=parseq" \
   -F "files=@document.jpg"
 ```
