@@ -1,0 +1,103 @@
+---
+title: Text recognition
+description: Read text from pre-cropped images without running detection
+---
+
+## What is text recognition?
+
+Text recognition is the second stage of the OCR pipeline — it reads the text content from an image. The `/recognition` endpoint takes a pre-cropped image of a text region and returns the recognized string with a confidence score.
+
+Use recognition on its own when you already know where the text is:
+
+- **Custom pipelines** — run your own detection or segmentation, then pass cropped regions to Trace OCR for reading
+- **Pre-cropped images** — read text from images that already contain a single text snippet (scanned labels, badges, signs)
+- **Model comparison** — test different recognition architectures on the same crops to evaluate accuracy
+- **Batch processing** — send many pre-segmented text regions for recognition without re-running detection
+
+## Example: reading text from a poster
+
+Here's an event poster with hand-drawn text. We'll crop individual text regions and send them to the recognition endpoint.
+
+<Frame caption="An event poster with hand-drawn English and Japanese text">
+  <img src="/images/poster-example.jpg" alt="Event poster for Something Nice with stylized hand-drawn text" />
+</Frame>
+
+We crop two text regions from the poster — one with clean printed numerals, one with hand-drawn lettering:
+
+<Frame caption="Two cropped text regions from the poster">
+  <div style={{ display: "flex", gap: "1rem", alignItems: "center", justifyContent: "center" }}>
+    <img src="/images/poster-crop-date.jpg" alt="Cropped text region showing 2016" style={{ height: "60px" }} />
+    <img src="/images/poster-crop-title.jpg" alt="Cropped text region showing Entrance Free" style={{ height: "60px" }} />
+  </div>
+</Frame>
+
+Send each crop to the recognition endpoint:
+
+```bash
+curl -X POST https://ocr-api.trace.so/recognition/ \
+  -F "files=@poster-crop-date.jpg" \
+  -F "files=@poster-crop-title.jpg"
+```
+
+The API returns the recognized text and confidence for each file:
+
+```json
+[
+  {
+    "name": "poster-crop-date.jpg",
+    "value": "2016",
+    "confidence": 1.0
+  },
+  {
+    "name": "poster-crop-title.jpg",
+    "value": "Entrance-frec",
+    "confidence": 0.45
+  }
+]
+```
+
+The clean numerals "2016" are recognized perfectly with near-perfect confidence. The hand-drawn "Entrance Free" is partially misread — the stylized lettering brings the confidence score down to 0.45. This is expected: recognition models work best on printed or clearly written text.
+
+## Parameters
+
+All parameters are optional query parameters passed in the URL.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `recognition_model` | `crnn_vgg16_bn` | The recognition architecture to use. See [available models](/concepts/models#recognition-models) for options. |
+| `recognition_batch_size` | `128` | Number of crops processed in parallel. Decrease if you run into memory issues on large batches. |
+
+```bash
+# Use a different recognition model
+curl -X POST "https://ocr-api.trace.so/recognition/?recognition_model=parseq" \
+  -F "files=@crop.jpg"
+```
+
+## Recognition vs full OCR
+
+The `/recognition` endpoint expects pre-cropped text images and returns only the recognized string. The `/ocr` endpoint handles detection and recognition together, returning a full document hierarchy.
+
+| | `/recognition` | `/ocr` |
+|---|---|---|
+| **Input** | Pre-cropped text image | Full document or page |
+| **Output** | Text string + confidence | Nested hierarchy with bounding boxes |
+| **Detection** | None — you provide the crops | Runs automatically |
+| **Speed** | Faster (one model, no detection) | Slower (two models) |
+| **Use when** | You already have text regions | You need end-to-end extraction |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Full OCR endpoint" icon="brain" href="/api-reference/endpoint/ocr/perform-ocr">
+    Run detection and recognition together to get the full text content.
+  </Card>
+  <Card title="OCR pipeline" icon="diagram-project" href="/concepts/ocr-pipeline">
+    Understand the two-stage detection + recognition architecture.
+  </Card>
+  <Card title="Available models" icon="microchip" href="/concepts/models">
+    Choose the right recognition model for your use case.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/endpoint/recognition/perform-text-recognition">
+    Full endpoint documentation with parameters and response schema.
+  </Card>
+</CardGroup>
