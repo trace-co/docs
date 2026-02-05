@@ -25,6 +25,7 @@
             "group": "Concepts",
             "pages": [
               "concepts/ocr-pipeline",
+              "concepts/text-detection",
               "concepts/models"
             ]
           }

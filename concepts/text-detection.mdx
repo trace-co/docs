@@ -1,0 +1,125 @@
+---
+title: Text detection
+description: Localize text regions in images and PDFs without reading the text
+---
+
+## What is text detection?
+
+Text detection is the first stage of the OCR pipeline — it finds **where** text appears in an image without reading it. The `/detection` endpoint returns bounding box coordinates for every text region it finds.
+
+Use detection on its own when you only need to know where text is, not what it says:
+
+- **Document layout analysis** — identify text blocks, headers, and table cells by their positions
+- **Text region highlighting** — draw attention to text areas in a UI
+- **Pre-processing for custom pipelines** — feed detected regions into your own recognition model or downstream logic
+- **Counting text blocks** — quickly assess how much text is on a page
+
+## Example: detecting text in an invoice
+
+Here's an invoice PDF we'll use to demonstrate detection:
+
+<Frame caption="A sample invoice from Sliced Invoices">
+  <img src="/images/invoice-example.png" alt="Sample invoice with header, addresses, line items, and totals" />
+</Frame>
+
+Send it to the detection endpoint:
+
+```bash
+curl -X POST https://ocr-api.trace.so/detection/ \
+  -F "files=@invoice.pdf"
+```
+
+The model scans the full page and draws bounding boxes around every text region:
+
+<Frame caption="Detection results — bounding boxes around every detected text region">
+  <img src="/images/invoice-detection-result.png" alt="Invoice with blue bounding boxes overlaid on every text region" />
+</Frame>
+
+The API returns a flat list of bounding boxes for each uploaded file:
+
+```json
+[
+  {
+    "name": "invoice.pdf",
+    "bounding_boxes": [
+      [0.0733, 0.0283, 0.3288, 0.0596],
+      [0.8065, 0.0645, 0.9294, 0.0859],
+      [0.5842, 0.1396, 0.6339, 0.1514],
+      [0.6353, 0.1396, 0.6906, 0.1504],
+      [0.7582, 0.1396, 0.8231, 0.1504],
+      [0.0706, 0.1465, 0.1148, 0.1572],
+      [0.0706, 0.1611, 0.1175, 0.1729],
+      [0.1272, 0.1611, 0.1714, 0.1729],
+      [0.1728, 0.1611, 0.2294, 0.1719],
+      [0.5828, 0.1582, 0.6257, 0.1699]
+    ]
+  }
+]
+```
+
+<Note>
+  The response above is abbreviated — this invoice produces 111 bounding boxes in total. Each box corresponds to a single word-level text region.
+</Note>
+
+Each bounding box is an array of four normalized coordinates: `[x_min, y_min, x_max, y_max]`, where values range from 0 to 1 relative to the page dimensions. To convert to pixel coordinates, multiply by the page width and height. See [Geometry format](/concepts/ocr-pipeline#geometry-format) for details.
+
+## Parameters
+
+All parameters are optional query parameters passed in the URL.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `detection_model` | `db_resnet50` | The detection architecture to use. See [available models](/concepts/models#detection-models) for options. |
+| `assume_straight_pages` | `true` | Return axis-aligned boxes. Set to `false` for rotated documents to get 4-point polygons instead. |
+| `preserve_aspect_ratio` | `true` | Pad the image to preserve its aspect ratio before feeding it to the model. |
+| `symmetric_padding` | `true` | Pad symmetrically (centered) rather than bottom-right only. |
+| `detection_batch_size` | `2` | Number of pages processed in parallel. Increase for multi-page PDFs if you have enough memory. |
+| `binary_threshold` | `0.1` | Pixel-level threshold for the segmentation heatmap. |
+| `box_threshold` | `0.1` | Minimum confidence to keep a detected box. |
+
+### Tuning thresholds
+
+The two threshold parameters control the sensitivity/precision trade-off:
+
+- **Lower thresholds** — detect more text regions, including faint or low-contrast text, but may introduce false positives
+- **Higher thresholds** — detect fewer, higher-confidence regions, reducing noise but potentially missing subtle text
+
+```bash
+# More aggressive detection (catch faint text)
+curl -X POST "https://ocr-api.trace.so/detection/?binary_threshold=0.05&box_threshold=0.05" \
+  -F "files=@document.pdf"
+
+# More conservative detection (reduce noise)
+curl -X POST "https://ocr-api.trace.so/detection/?binary_threshold=0.3&box_threshold=0.3" \
+  -F "files=@document.pdf"
+```
+
+## Detection vs full OCR
+
+The `/detection` endpoint returns only bounding boxes — it tells you **where** text is but not **what** it says. The `/ocr` endpoint runs both detection and recognition, returning a full nested hierarchy of pages, blocks, lines, and words with recognized text and confidence scores.
+
+| | `/detection` | `/ocr` |
+|---|---|---|
+| **Output** | Flat list of bounding boxes | Nested hierarchy with recognized text |
+| **Speed** | Faster (one model) | Slower (two models) |
+| **Response size** | Smaller | Larger |
+| **Use when** | You only need text locations | You need to read the text |
+
+For a full walkthrough of the OCR pipeline, see [OCR pipeline](/concepts/ocr-pipeline).
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Full OCR endpoint" icon="brain" href="/api-reference/endpoint/ocr/perform-ocr">
+    Run detection and recognition together to get the full text content.
+  </Card>
+  <Card title="OCR pipeline" icon="diagram-project" href="/concepts/ocr-pipeline">
+    Understand the two-stage detection + recognition architecture.
+  </Card>
+  <Card title="Available models" icon="microchip" href="/concepts/models">
+    Choose the right detection model for your use case.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/endpoint/detection/perform-text-detection">
+    Full endpoint documentation with parameters and response schema.
+  </Card>
+</CardGroup>
