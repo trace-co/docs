@@ -1,0 +1,225 @@
+---
+title: Key information extraction
+description: Extract structured fields from documents like invoices and receipts
+---
+
+## What is key information extraction?
+
+Key information extraction (KIE) runs the same detection + recognition pipeline as `/ocr`, but structures the output differently. Instead of a nested hierarchy of pages, blocks, lines, and words, the `/kie` endpoint groups all detected text under labeled **field types** — returning a flat list of recognized words with their positions and confidence scores.
+
+The default predictor uses a single `"words"` field type that contains every detected word. Custom field types (e.g. `"total"`, `"date"`, `"vendor"`) require fine-tuning on a labeled dataset.
+
+Use KIE when you want:
+
+- **Flat structured output** — skip the block/line hierarchy and get all words directly for downstream processing
+- **Custom classification pipelines** — pair the flat word list with your own field-type logic
+- **Preparing for fine-tuning** — start with the default output, then train on labeled data (CORD, FUNSD, SROIE) to get semantic field types
+
+## Example: extracting fields from an invoice
+
+Here's the same invoice from the [text detection](/concepts/text-detection) guide:
+
+<Frame caption="A sample invoice from Sliced Invoices">
+  <img src="/images/invoice-example.png" alt="Sample invoice with header, addresses, line items, and totals" />
+</Frame>
+
+Send it to the KIE endpoint:
+
+```bash
+curl -X POST https://ocr-api.trace.so/kie/ \
+  -F "files=@invoice.pdf"
+```
+
+The API returns extracted fields grouped by field type:
+
+```json
+[
+  {
+    "name": "invoice.pdf",
+    "orientation": { "value": 0.0, "confidence": null },
+    "language": { "value": null, "confidence": null },
+    "dimensions": [595, 842],
+    "extracted_fields": [
+      {
+        "field_type": "words",
+        "values": [
+          {
+            "value": "Invoice",
+            "geometry": [0.5842, 0.1396, 0.6339, 0.1514],
+            "detection_score": 0.99,
+            "confidence": 0.96,
+            "text_orientation": { "value": 0, "confidence": null }
+          },
+          {
+            "value": "INV-3337",
+            "geometry": [0.7582, 0.1396, 0.8231, 0.1504],
+            "detection_score": 0.99,
+            "confidence": 0.77,
+            "text_orientation": { "value": 0, "confidence": null }
+          },
+          {
+            "value": "January",
+            "geometry": [0.7554, 0.1768, 0.8148, 0.1914],
+            "detection_score": 0.99,
+            "confidence": 0.91,
+            "text_orientation": { "value": 0, "confidence": null }
+          },
+          {
+            "value": "$93.50",
+            "geometry": [0.7568, 0.2148, 0.8052, 0.2266],
+            "detection_score": 0.99,
+            "confidence": 0.99,
+            "text_orientation": { "value": 0, "confidence": null }
+          },
+          {
+            "value": "Test",
+            "geometry": [0.0692, 0.291, 0.1023, 0.3037],
+            "detection_score": 0.99,
+            "confidence": 1.0,
+            "text_orientation": { "value": 0, "confidence": null }
+          },
+          {
+            "value": "Business",
+            "geometry": [0.1037, 0.292, 0.1658, 0.3027],
+            "detection_score": 0.99,
+            "confidence": 1.0,
+            "text_orientation": { "value": 0, "confidence": null }
+          },
+          {
+            "value": "Web",
+            "geometry": [0.17, 0.417, 0.2059, 0.4287],
+            "detection_score": 0.99,
+            "confidence": 1.0,
+            "text_orientation": { "value": 0, "confidence": null }
+          },
+          {
+            "value": "Design",
+            "geometry": [0.2045, 0.416, 0.2556, 0.4316],
+            "detection_score": 0.99,
+            "confidence": 1.0,
+            "text_orientation": { "value": 0, "confidence": null }
+          },
+          {
+            "value": "$85.00",
+            "geometry": [0.6077, 0.4229, 0.656, 0.4346],
+            "detection_score": 0.99,
+            "confidence": 0.79,
+            "text_orientation": { "value": 0, "confidence": null }
+          },
+          {
+            "value": "$8.50",
+            "geometry": [0.8742, 0.4834, 0.9184, 0.498],
+            "detection_score": 0.99,
+            "confidence": 0.91,
+            "text_orientation": { "value": 0, "confidence": null }
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+<Note>
+  The response above is abbreviated — this invoice produces 111 words in total. All words appear under the default `"words"` field type. Custom field types like `"total"` or `"date"` require a fine-tuned model.
+</Note>
+
+Each value in the response includes:
+
+| Field | Description |
+|-------|-------------|
+| `value` | The recognized text string |
+| `geometry` | Bounding box as `[x_min, y_min, x_max, y_max]`, normalized 0–1 relative to page dimensions |
+| `confidence` | Recognition confidence (0–1) — how sure the model is about the text content |
+| `detection_score` | Detection confidence (0–1) — how sure the model is that this region contains text |
+| `text_orientation` | Detected rotation of the text crop (0 = horizontal) |
+
+## Parameters
+
+All parameters are optional query parameters passed in the URL.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `detection_model` | `db_resnet50` | The detection architecture to use. See [available models](/concepts/models#detection-models). |
+| `recognition_model` | `crnn_vgg16_bn` | The recognition architecture to use. See [available models](/concepts/models#recognition-models). |
+| `assume_straight_pages` | `true` | Return axis-aligned boxes. Set to `false` for rotated documents to get 4-point polygons. |
+| `preserve_aspect_ratio` | `true` | Pad the image to preserve its aspect ratio before feeding it to the model. |
+| `detect_orientation` | `false` | Detect and report the page orientation (rotation angle). |
+| `detect_language` | `false` | Detect and report the page language. |
+| `symmetric_padding` | `true` | Pad symmetrically (centered) rather than bottom-right only. |
+| `straighten_pages` | `false` | Automatically rotate pages to correct detected skew. |
+| `detection_batch_size` | `2` | Number of pages processed in parallel for detection. Increase for multi-page PDFs if you have enough memory. |
+| `recognition_batch_size` | `128` | Number of text crops processed in parallel for recognition. Decrease if you run into memory issues. |
+| `disable_page_orientation` | `false` | Skip page orientation classification entirely. |
+| `disable_text_orientation` | `false` | Skip text crop orientation classification. |
+| `binary_threshold` | `0.1` | Pixel-level threshold for the segmentation heatmap. |
+| `box_threshold` | `0.1` | Minimum confidence to keep a detected box. |
+
+```bash
+# Use a different model pair with orientation detection
+curl -X POST "https://ocr-api.trace.so/kie/?detection_model=db_resnet50&recognition_model=parseq&detect_orientation=true" \
+  -F "files=@invoice.pdf"
+```
+
+## KIE vs full OCR
+
+The `/kie` and `/ocr` endpoints run the same detection and recognition models, but return results in different structures.
+
+| | `/kie` | `/ocr` |
+|---|---|---|
+| **Output structure** | Flat list of words grouped by field type | Nested hierarchy: pages > blocks > lines > words |
+| **Field grouping** | Words grouped under labeled field types (default: `"words"`) | Words grouped by spatial proximity into lines and blocks |
+| **Spatial context** | Individual word positions only | Line-level and block-level bounding boxes included |
+| **Use when** | You need a flat word list for downstream processing or custom field classification | You need the document's visual structure (paragraphs, columns, sections) |
+
+## Understanding field types
+
+The default KIE predictor groups all detected text under a single `"words"` field type. It does not semantically classify fields — every word on the page appears in the same list regardless of whether it's an invoice number, date, or line item.
+
+With a fine-tuned model, the output would contain multiple field types:
+
+```json
+{
+  "extracted_fields": [
+    {
+      "field_type": "vendor_name",
+      "values": [
+        { "value": "DEMO", "geometry": [0.0706, 0.1611, 0.1175, 0.1729], "confidence": 1.0, "..." : "..." },
+        { "value": "Sliced", "geometry": [0.1272, 0.1611, 0.1714, 0.1729], "confidence": 1.0, "..." : "..." },
+        { "value": "Invoices", "geometry": [0.1728, 0.1611, 0.2294, 0.1719], "confidence": 0.99, "..." : "..." }
+      ]
+    },
+    {
+      "field_type": "total_amount",
+      "values": [
+        { "value": "$93.50", "geometry": [0.7568, 0.2148, 0.8052, 0.2266], "confidence": 0.99, "..." : "..." }
+      ]
+    }
+  ]
+}
+```
+
+Training datasets for document KIE include:
+
+- **CORD** — receipt understanding with 30 field types (menu items, prices, totals)
+- **FUNSD** — form understanding with header, question, answer, and other fields
+- **SROIE** — receipt extraction for company, date, address, and total
+
+These datasets are commonly used for fine-tuning KIE models.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Full OCR endpoint" icon="brain" href="/api-reference/endpoint/ocr/perform-ocr">
+    Run detection and recognition together to get structured text with spatial hierarchy.
+  </Card>
+  <Card title="Text detection" icon="vector-square" href="/concepts/text-detection">
+    Localize text regions without reading the text.
+  </Card>
+  <Card title="Available models" icon="microchip" href="/concepts/models">
+    Choose detection and recognition models for your use case.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/endpoint/kie/perform-kie">
+    Full KIE endpoint documentation with parameters and response schema.
+  </Card>
+</CardGroup>

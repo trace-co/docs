@@ -4,7 +4,7 @@
 
 This is the documentation site for **Trace OCR**, a REST API for text detection and recognition. The docs are built with [Mintlify](https://mintlify.com/) and hosted from the `trace-co/docs` repository.
 
-The API source code lives in a separate repository (`trace-co/trace-doctr`).
+The API source code lives in a separate repository.
 
 ## Mintlify basics
 
@@ -18,7 +18,7 @@ The API source code lives in a separate repository (`trace-co/trace-doctr`).
 - The API has four endpoints: `/ocr`, `/detection`, `/recognition`, `/kie`
 - API reference pages are auto-generated from `api-reference/openapi.json` — do not create manual endpoint pages
 - To update the API reference, re-export the OpenAPI spec from the FastAPI app
-- Always refer to the product as "Trace OCR" (not "docTR" or "doctr")
+- Always refer to the product as "Trace OCR"
 - Detection models are specified via the `detection_model` query parameter
 - Recognition models are specified via the `recognition_model` query parameter
 - Geometry values are normalized floats between 0 and 1

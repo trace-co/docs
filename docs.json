@@ -27,6 +27,7 @@
               "concepts/ocr-pipeline",
               "concepts/text-detection",
               "concepts/text-recognition",
+              "concepts/kie",
               "concepts/models"
             ]
           }
